@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Color Fun</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="theme-color" content="#ffd54f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<svg id="sprite" aria-hidden="true">
+  <defs>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10"/></symbol>
+    <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14L4 9l5-5M4 9h10a6 6 0 010 12h-3"/></symbol>
+    <symbol id="i-redo" viewBox="0 0 24 24"><path d="M15 14l5-5-5-5M20 9H10a6 6 0 000 12h3"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></symbol>
+    <symbol id="i-save" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></symbol>
+    <symbol id="i-brush" viewBox="0 0 24 24"><path d="M20 4l-9 9M9 12c-3 0-4 2-4 4 0 1-1 2-2 3 3 1 7 0 7-4 0-1-.5-3-1-3z"/><path d="M20 4l-2-1-7 7 3 3 7-7z"/></symbol>
+    <symbol id="i-bucket" viewBox="0 0 24 24"><path d="M4 12l8-8 8 8-7 7a2 2 0 01-2.8 0z"/><path d="M12 4L9 1M20 15c1.5 2 2 3 2 4a2 2 0 01-4 0c0-1 .5-2 2-4z"/></symbol>
+    <symbol id="i-eraser" viewBox="0 0 24 24"><path d="M3 16l9-11 8 7-7 8H7z"/><path d="M9 21h12M8 10l8 7"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M4 12l6 6L20 6"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19"/></symbol>
+  </defs>
+</svg>
+
+<!-- Gallery -->
+<main id="gallery">
+  <h1 aria-label="Color Fun"><span>C</span><span>o</span><span>l</span><span>o</span><span>r</span> <span>F</span><span>u</span><span>n</span></h1>
+  <div id="grid"></div>
+  <p id="empty" hidden>Add pictures to the Images folder, then run add-images.ps1</p>
+</main>
+
+<!-- Studio -->
+<section id="studio" hidden>
+  <header id="bar">
+    <button class="ibtn" id="home" aria-label="Back to pictures"><svg><use href="#i-home"/></svg></button>
+    <div class="spacer"></div>
+    <button class="ibtn" id="undo" aria-label="Undo"><svg><use href="#i-undo"/></svg></button>
+    <button class="ibtn" id="redo" aria-label="Redo"><svg><use href="#i-redo"/></svg></button>
+    <button class="ibtn" id="clear" aria-label="Start over"><svg><use href="#i-trash"/></svg></button>
+    <button class="ibtn go" id="save" aria-label="Save picture"><svg><use href="#i-save"/></svg></button>
+  </header>
+
+  <div id="stage">
+    <div id="wrap">
+      <canvas id="color"></canvas>
+      <img id="line" alt="" draggable="false">
+    </div>
+  </div>
+
+  <div id="panel">
+    <div id="tools">
+      <button class="tool on" data-tool="brush" aria-label="Brush"><svg><use href="#i-brush"/></svg></button>
+      <button class="tool" data-tool="bucket" aria-label="Fill"><svg><use href="#i-bucket"/></svg></button>
+      <button class="tool" data-tool="eraser" aria-label="Eraser"><svg><use href="#i-eraser"/></svg></button>
+      <div class="gap"></div>
+      <div id="sizes"></div>
+    </div>
+    <div id="palette"></div>
+  </div>
+</section>
+
+<dialog id="confirm">
+  <p>Start over?</p>
+  <div class="row">
+    <button class="ibtn no" id="no" aria-label="No"><svg><use href="#i-x"/></svg></button>
+    <button class="ibtn yes" id="yes" aria-label="Yes"><svg><use href="#i-check"/></svg></button>
+  </div>
+</dialog>
+
+<div id="toast" role="status"></div>
+<script src="app.js"></script>
+</body>
+</html>
