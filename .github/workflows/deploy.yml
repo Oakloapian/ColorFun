@@ -1,0 +1,41 @@
+name: Publish Color Fun
+
+# Runs every time you add/change/delete files in the repo (e.g. dropping a picture into Images/).
+# It rebuilds the picture list automatically and republishes the site. No manual script needed.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Assemble site and build picture list
+        run: |
+          mkdir _site
+          cp -r index.html app.css app.js sw.js manifest.webmanifest icons Images _site/
+          cd _site/Images
+          (ls -1 | grep -iE '\.(png|jpe?g|webp|gif|svg)$' || true) | sort | jq -R . | jq -s . > manifest.json
+          cat manifest.json
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4
