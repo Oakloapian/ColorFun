@@ -15,7 +15,7 @@ const $ = s => document.querySelector(s);
 const canvas = $('#color'), ctx = canvas.getContext('2d', { willReadFrequently: true });
 const lineImg = $('#line'), wrap = $('#wrap');
 
-const st = { tool: 'brush', color: COLORS[0], size: 1, name: null, undo: [], redo: [], drawing: false, last: null, saveTimer: 0 };
+const st = { tool: 'brush', color: COLORS[0], size: 1, name: null, undo: [], redo: [], drawing: false, last: null, saveTimer: 0, hue: 0 };
 let W = 1, H = 1, lum = null;
 
 /* ---------- storage (IndexedDB, fails soft) ---------- */
@@ -123,11 +123,24 @@ function pos(e) {
   const r = canvas.getBoundingClientRect();
   return { x: (e.clientX - r.left) * W / r.width, y: (e.clientY - r.top) * H / r.height };
 }
-const paintColor = () => st.tool === 'eraser' ? '#ffffff' : st.color;
+const isRainbow = () => st.tool !== 'eraser' && st.color === 'rainbow';
+const paintColor = () => st.tool === 'eraser' ? '#ffffff' : isRainbow() ? 'hsl(' + (st.hue % 360) + ' 90% 55%)' : st.color;
 function dot(p) {
   ctx.fillStyle = paintColor(); ctx.beginPath(); ctx.arc(p.x, p.y, SIZES[st.size] / 2, 0, 6.2832); ctx.fill();
 }
 function seg(a, b) {
+  if (isRainbow()) {                                  // hue slides as you draw; split long jumps so the trail stays smooth
+    const dist = Math.hypot(b.x - a.x, b.y - a.y), n = Math.max(1, Math.ceil(dist / 10));
+    let prev = a;
+    for (let i = 1; i <= n; i++) {
+      const q = { x: a.x + (b.x - a.x) * i / n, y: a.y + (b.y - a.y) * i / n };
+      st.hue += dist / n * 0.5; line(prev, q); prev = q;
+    }
+    return;
+  }
+  line(a, b);
+}
+function line(a, b) {
   ctx.strokeStyle = paintColor(); ctx.lineWidth = SIZES[st.size]; ctx.lineCap = ctx.lineJoin = 'round';
   ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
 }
@@ -138,7 +151,7 @@ canvas.addEventListener('pointerdown', e => {
   try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
   const p = pos(e);
   if (st.tool === 'bucket') { bucket(p.x, p.y); return; }
-  pushUndo(); st.drawing = true; st.last = p; dot(p);
+  pushUndo(); st.drawing = true; st.last = p; st.hue = Math.random() * 360; dot(p);
 });
 canvas.addEventListener('pointermove', e => {
   if (!st.drawing) return;
@@ -154,6 +167,17 @@ canvas.addEventListener('pointercancel', endStroke);
 canvas.addEventListener('contextmenu', e => e.preventDefault());
 
 /* ---------- bucket fill ---------- */
+let rbTable = null;
+function rainbowTable() {                       // 360 packed ABGR colors, one per hue degree
+  if (rbTable) return rbTable;
+  rbTable = new Uint32Array(360);
+  const f = (n, h) => { const k = (n + h / 30) % 12; return 0.55 - 0.405 * Math.max(-1, Math.min(k - 3, 9 - k, 1)); };   // HSL(h, 90%, 55%)
+  for (let h = 0; h < 360; h++) {
+    const r = Math.round(f(0, h) * 255), g = Math.round(f(8, h) * 255), b = Math.round(f(4, h) * 255);
+    rbTable[h] = ((255 << 24) | (b << 16) | (g << 8) | r) >>> 0;
+  }
+  return rbTable;
+}
 function bucket(fx, fy) {
   const x0 = Math.floor(fx), y0 = Math.floor(fy);
   if (x0 < 0 || y0 < 0 || x0 >= W || y0 >= H) return;
@@ -162,7 +186,10 @@ function bucket(fx, fy) {
   if (lum[start] < BARRIER_LUM) { toast('Tap inside a shape'); return; }   // tapped on an outline
   pushUndo();
   const img = ctx.getImageData(0, 0, W, H), d = new Uint32Array(img.data.buffer);
-  const c = hexRgb(st.color), px = ((255 << 24) | (c.b << 16) | (c.g << 8) | c.r) >>> 0;
+  const rb = st.color === 'rainbow';
+  const c = hexRgb(rb ? '#000000' : st.color), px = ((255 << 24) | (c.b << 16) | (c.g << 8) | c.r) >>> 0;
+  const tbl = rb ? rainbowTable() : null;
+  const put = q => { d[q] = rb ? tbl[((((q % W) + ((q / W) | 0)) * 0.3) | 0) % 360] : px; };   // diagonal rainbow bands
   const vis = new Uint8Array(W * H), stack = [start];
   const open = q => lum[q] >= BARRIER_LUM && !vis[q];
 
@@ -173,7 +200,7 @@ function bucket(fx, fy) {
     let l = p - row, r = l;
     while (l > 0 && open(row + l - 1)) l--;
     while (r < W - 1 && open(row + r + 1)) r++;
-    for (let i = l; i <= r; i++) { vis[row + i] = 1; d[row + i] = px; }
+    for (let i = l; i <= r; i++) { vis[row + i] = 1; put(row + i); }
     for (const ny of [y - 1, y + 1]) {
       if (ny < 0 || ny >= H) continue;
       let run = false;
@@ -189,7 +216,7 @@ function bucket(fx, fy) {
     for (let q = W; q < W * H - W; q++) {
       if (!vis[q] && lum[q] > 40 && (vis[q - 1] || vis[q + 1] || vis[q - W] || vis[q + W])) add.push(q);
     }
-    for (const q of add) { vis[q] = 1; d[q] = px; }
+    for (const q of add) { vis[q] = 1; put(q); }
   }
   ctx.putImageData(img, 0, 0);
   scheduleSave();
@@ -230,16 +257,16 @@ function setColor(c) {
   st.color = c;
   if (st.tool === 'eraser') setTool('brush');
   palette.querySelectorAll('.sw').forEach(b => b.classList.toggle('on', b.dataset.c === c));
-  document.documentElement.style.setProperty('--cur', c === '#ffffff' ? '#bbb' : c);
+  document.documentElement.style.setProperty('--cur',
+    c === 'rainbow' ? 'conic-gradient(red,yellow,lime,cyan,blue,magenta,red)' : c === '#ffffff' ? '#bbb' : c);
 }
 COLORS.forEach(c => {
   const b = document.createElement('button'); b.className = 'sw'; b.style.setProperty('--c', c);
   b.dataset.c = c; b.setAttribute('aria-label', 'color'); b.onclick = () => setColor(c); palette.append(b);
 });
 {
-  const lab = document.createElement('label'); lab.className = 'sw rainbow'; lab.setAttribute('aria-label', 'more colors');
-  const inp = document.createElement('input'); inp.type = 'color'; inp.value = '#ff5722';
-  inp.oninput = () => setColor(inp.value); lab.append(inp); palette.append(lab);
+  const b = document.createElement('button'); b.className = 'sw rainbow'; b.dataset.c = 'rainbow'; b.setAttribute('aria-label', 'rainbow');
+  b.onclick = () => setColor('rainbow'); palette.append(b);
 }
 function setTool(t) {
   st.tool = t;
