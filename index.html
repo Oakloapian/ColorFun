@@ -17,6 +17,7 @@
 <svg id="sprite" aria-hidden="true">
   <defs>
     <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
     <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14L4 9l5-5M4 9h10a6 6 0 010 12h-3"/></symbol>
     <symbol id="i-redo" viewBox="0 0 24 24"><path d="M15 14l5-5-5-5M20 9H10a6 6 0 000 12h3"/></symbol>
     <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></symbol>
@@ -24,33 +25,42 @@
     <symbol id="i-brush" viewBox="0 0 24 24"><path d="M20 4l-9 9M9 12c-3 0-4 2-4 4 0 1-1 2-2 3 3 1 7 0 7-4 0-1-.5-3-1-3z"/><path d="M20 4l-2-1-7 7 3 3 7-7z"/></symbol>
     <symbol id="i-bucket" viewBox="0 0 24 24"><path d="M4 12l8-8 8 8-7 7a2 2 0 01-2.8 0z"/><path d="M12 4L9 1M20 15c1.5 2 2 3 2 4a2 2 0 01-4 0c0-1 .5-2 2-4z"/></symbol>
     <symbol id="i-eraser" viewBox="0 0 24 24"><path d="M3 16l9-11 8 7-7 8H7z"/><path d="M9 21h12M8 10l8 7"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3l2.7 5.7 6.3.8-4.6 4.3 1.2 6.2L12 17l-5.6 3 1.2-6.2L3 9.5l6.3-.8z"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
     <symbol id="i-check" viewBox="0 0 24 24"><path d="M4 12l6 6L20 6"/></symbol>
     <symbol id="i-x" viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19"/></symbol>
   </defs>
 </svg>
 
-<!-- Gallery -->
+<!-- Gallery: category buckets, then pictures -->
 <main id="gallery">
   <h1 aria-label="Color Fun"><span>C</span><span>o</span><span>l</span><span>o</span><span>r</span> <span>F</span><span>u</span><span>n</span></h1>
+  <div id="crumb" hidden>
+    <button class="ibtn" id="catBack" aria-label="Back"><svg><use href="#i-back"/></svg></button>
+    <h2 id="catTitle"></h2>
+  </div>
   <div id="grid"></div>
-  <p id="empty" hidden>Add pictures to the Images folder, then run add-images.ps1</p>
+  <p id="empty" hidden>Add pictures to the Images folder.</p>
 </main>
 
 <!-- Studio -->
 <section id="studio" hidden>
   <header id="bar">
     <button class="ibtn" id="home" aria-label="Back to pictures"><svg><use href="#i-home"/></svg></button>
+    <button class="ibtn mode on" id="mPaint" aria-label="Coloring"><svg><use href="#i-brush"/></svg></button>
+    <button class="ibtn mode" id="mStick" aria-label="Stickers"><svg><use href="#i-star"/></svg></button>
     <div class="spacer"></div>
     <button class="ibtn" id="undo" aria-label="Undo"><svg><use href="#i-undo"/></svg></button>
     <button class="ibtn" id="redo" aria-label="Redo"><svg><use href="#i-redo"/></svg></button>
     <button class="ibtn" id="clear" aria-label="Start over"><svg><use href="#i-trash"/></svg></button>
-    <button class="ibtn go" id="save" aria-label="Save picture"><svg><use href="#i-save"/></svg></button>
+    <button class="ibtn go" id="save" aria-label="Download picture"><svg><use href="#i-save"/></svg></button>
   </header>
 
   <div id="stage">
     <div id="wrap">
       <canvas id="color"></canvas>
       <img id="line" alt="" draggable="false">
+      <canvas id="stk"></canvas>
     </div>
   </div>
 
@@ -63,6 +73,7 @@
       <div id="sizes"></div>
     </div>
     <div id="palette"></div>
+    <div id="stickers"></div>
   </div>
 </section>
 
@@ -74,7 +85,14 @@
   </div>
 </dialog>
 
+<dialog id="more">
+  <div id="shades"></div>
+  <div class="row"><button class="ibtn no" id="moreClose" aria-label="Close"><svg><use href="#i-x"/></svg></button></div>
+</dialog>
+
+<div id="ghost" hidden></div>
 <div id="toast" role="status"></div>
+<script src="sounds.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

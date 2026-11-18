@@ -86,3 +86,27 @@ dialog .ibtn{width:84px;height:84px;padding:22px}
 .ibtn.yes{background:var(--green);color:#fff}.ibtn.no{background:var(--red);color:#fff}
 #toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,40px);background:var(--ink);color:#fff;padding:14px 28px;border-radius:30px;font-size:22px;opacity:0;pointer-events:none;transition:.25s;z-index:9}
 #toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* ---- v2: categories, stickers, shade picker ---- */
+#crumb{display:flex;align-items:center;gap:12px;max-width:1000px;margin:0 auto 12px}
+#crumb h2{margin:0;font-size:30px}
+.cat{background:var(--t,#fff);border-radius:28px;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  box-shadow:0 4px 0 #0002;font-size:22px;font-weight:700;color:var(--ink);padding:8px}
+.cat:active{transform:scale(.95)}
+.cat .em{font-size:clamp(48px,14vw,84px);line-height:1}
+.cat small{font-weight:600;opacity:.55;font-size:16px}
+.ibtn.mode{background:#fff}
+.ibtn.mode.on{background:#ffe0b2;outline:4px solid var(--ring)}
+#stk{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+#stickers{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.stkbtn{aspect-ratio:1;font-size:clamp(24px,7vw,38px);line-height:1;background:#fff;border-radius:16px;box-shadow:0 3px 0 #0003;touch-action:none;padding:0}
+#ghost{position:fixed;transform:translate(-50%,-50%);pointer-events:none;z-index:30;line-height:1}
+#studio:not(.stickers) #stickers{display:none}
+#studio.stickers #palette,#studio.stickers .tool{display:none}
+#studio.stickers .sz i{background:#78909c}
+.sw.more{background:var(--c,#fff)}
+.sw.more svg{position:absolute;inset:22%;width:56%;height:56%;color:#37474f;filter:drop-shadow(0 0 2px #fff)}
+#shades{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:6px;width:min(84vw,420px)}
+#shades button{aspect-ratio:1;border-radius:50%;background:var(--c);box-shadow:inset 0 0 0 2px #0003;padding:0}
+@media (orientation:landscape) and (min-width:700px){ #stickers{grid-template-columns:repeat(5,minmax(0,1fr))} }
+@media (max-width:430px){ #bar{gap:6px;padding:8px} #bar .ibtn{width:42px;height:42px;padding:10px} }

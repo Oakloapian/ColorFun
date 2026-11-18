@@ -28,9 +28,11 @@ jobs:
       - name: Assemble site and build picture list
         run: |
           mkdir _site
-          cp -r index.html app.css app.js sw.js manifest.webmanifest icons Images _site/
+          cp -r index.html app.css app.js sounds.js sw.js manifest.webmanifest icons Images _site/
           cd _site/Images
-          (ls -1 | grep -iE '\.(png|jpe?g|webp|gif|svg)$' || true) | sort | jq -R . | jq -s . > manifest.json
+          # Every picture under Images/ (subfolder = category) goes in the list; files directly in Images/ become "More".
+          (find . -type f \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.webp' -o -iname '*.gif' -o -iname '*.svg' \) \
+            | sed 's|^\./||' | sort) | jq -R . | jq -s . > manifest.json
           cat manifest.json
 
       - uses: actions/configure-pages@v5
