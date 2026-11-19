@@ -112,3 +112,4 @@ dialog .ibtn{width:84px;height:84px;padding:22px}
 @media (max-width:430px){ #bar{gap:6px;padding:8px} #bar .ibtn{width:42px;height:42px;padding:10px} }
 #gallery{position:relative}
 #refresh{position:absolute;top:12px;right:12px}
+#ver{text-align:center;font-size:12px;opacity:.45;margin:24px 0 0}
