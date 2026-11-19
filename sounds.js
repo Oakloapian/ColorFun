@@ -71,6 +71,6 @@
   };
 
   window.playFinish = name => {
-    try { ctx(); (SOUNDS[String(name).toLowerCase()] || SOUNDS.default)(); } catch (e) {}
+    try { ctx(); (SOUNDS[{ vehicles: 'cars' }[String(name).toLowerCase()] || String(name).toLowerCase()] || SOUNDS.default)(); } catch (e) {}
   };
 })();

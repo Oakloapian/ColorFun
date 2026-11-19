@@ -15,7 +15,7 @@ const STICKERS = ['⭐', '🌈', '❤️', '☀️', '🌙', '🌸', '🌳',
   '🎁', '🏆', '💎', '🍦', '⚽', '🎵', '🔥'];
 const CAT_INFO = {                         // emoji + tile color per category (unknown folders get a star)
   dinosaurs: ['🦖', '#c5e1a5'], aliens: ['👽', '#b2ebf2'], space: ['🚀', '#d1c4e9'],
-  robots: ['🤖', '#bbdefb'], cars: ['🚗', '#ffcdd2'], animals: ['🐶', '#ffe0b2'],
+  robots: ['🤖', '#bbdefb'], cars: ['🚗', '#ffcdd2'], vehicles: ['🚗', '#ffcdd2'], animals: ['🐶', '#ffe0b2'],
   more: ['⭐', '#fff59d']
 };
 const MAX_UNDO = 8;
