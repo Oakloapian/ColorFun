@@ -476,3 +476,14 @@ document.addEventListener('pointerdown', () => { window.unlockAudio && unlockAud
 setColor(COLORS[0]);
 showGallery();
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
+
+/* Refresh: drop cached copies and reload so new app versions and pictures show up right away (progress is kept). */
+$('#refresh').onclick = async () => {
+  try { for (const k of await caches.keys()) await caches.delete(k); } catch (e) {}
+  try { for (const r of await navigator.serviceWorker.getRegistrations()) await r.unregister(); } catch (e) {}
+  location.reload();
+};
+/* When a new version takes over while the gallery is showing, reload once so it's used immediately. */
+if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+  navigator.serviceWorker.addEventListener('controllerchange', () => { if (!$('#gallery').hidden) location.reload(); });
+}

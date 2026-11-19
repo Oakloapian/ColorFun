@@ -1,6 +1,6 @@
 /* Offline cache: app shell + every image in Images/manifest.json.
    Strategy: serve from cache instantly, refresh in the background (new images appear on next open). */
-const V = 'colorfun-v9';   // bump when app code changes so phones pick up the update
+const V = 'colorfun-v10';   // bump when app code changes so phones pick up the update
 const SHELL = ['./', 'index.html', 'app.css', 'app.js', 'sounds.js', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png'];
 
 self.addEventListener('install', e => {
