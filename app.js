@@ -106,7 +106,7 @@ function renderGallery() {
       const b = document.createElement('button'); b.className = 'cat'; b.style.setProperty('--t', tint);
       b.innerHTML = '<span class="em">' + emoji + '</span><span></span><small>' + n + '</small>';
       b.children[1].textContent = cat;
-      b.onclick = () => { st.cat = cat; renderGallery(); window.scrollTo(0, 0); };
+      b.onclick = () => { history.pushState({ v: 'cat' }, ''); st.cat = cat; renderGallery(); window.scrollTo(0, 0); };
       grid.append(b);
     }
     return;
@@ -118,11 +118,11 @@ function renderGallery() {
     dbGetArt(p).then(rec => {                         // show the child's progress if there is any
       if (rec && rec.thumb) { const u = URL.createObjectURL(rec.thumb); thumbUrls.push(u); im.src = u; }
     });
-    b.onclick = () => openArt(p);
+    b.onclick = () => { history.pushState({ v: 'art' }, ''); openArt(p); };
     grid.append(b);
   }
 }
-$('#catBack').onclick = () => { st.cat = null; renderGallery(); };
+$('#catBack').onclick = () => { if (histV() === 'cat') history.back(); else { st.cat = null; renderGallery(); } };
 
 /* ---------- studio ---------- */
 async function openArt(name) {
@@ -460,7 +460,7 @@ STICKERS.forEach(e => {
 $('#undo').onclick = undo;
 $('#redo').onclick = redo;
 $('#save').onclick = exportPicture;
-$('#home').onclick = async () => { await saveProgress(); showGallery(); };
+$('#home').onclick = async () => { if (histV() === 'art') history.back(); else { await saveProgress(); showGallery(); } };
 const dlg = $('#confirm');
 $('#clear').onclick = () => dlg.showModal();
 $('#no').onclick = () => dlg.close();
@@ -487,3 +487,14 @@ $('#refresh').onclick = async () => {
 if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
   navigator.serviceWorker.addEventListener('controllerchange', () => { if (!$('#gallery').hidden) location.reload(); });
 }
+
+/* Phone swipe-back / system back: step back one screen (picture -> category -> home) instead of leaving the app. */
+function histV() { return (history.state && history.state.v) || 'home'; }
+history.replaceState({ v: 'home' }, '');
+addEventListener('popstate', async () => {
+  const v = histV();
+  if (v === 'art') return;
+  if (!$('#studio').hidden) await saveProgress();
+  if (v === 'home') st.cat = null;
+  showGallery();
+});
