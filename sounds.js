@@ -25,20 +25,42 @@
     notes.forEach((f, i) => tone(type || 'triangle', f, f, t + i * step, 0.35, vol || 0.25));
   }
 
+  /* Dinosaur roar. p = 0..1 grows the roar (small, quiet, high -> big, loud, low); crazy = the grand finale T-Rex. */
+  function roar(p, crazy) {
+    const c = ctx(), t = c.currentTime;
+    const dur = crazy ? 3.0 : 0.35 + p * 0.85;
+    const base = crazy ? 90 : 190 - p * 80;
+    const vol = crazy ? 0.9 : 0.1 + p * 0.4;
+    const out = c.createDynamicsCompressor(); out.connect(c.destination);
+    const sh = c.createWaveShaper(), k = crazy ? 160 : 4 + p * 70, curve = new Float32Array(1024);
+    for (let i = 0; i < 1024; i++) { const x = i / 512 - 1; curve[i] = (1 + k) * x / (1 + k * Math.abs(x)); }
+    sh.curve = curve;
+    const f = c.createBiquadFilter(); f.type = 'lowpass';
+    f.frequency.setValueAtTime(900 + p * 1500, t); f.frequency.exponentialRampToValueAtTime(crazy ? 260 : 350, t + dur);
+    const g = c.createGain(); g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol, t + 0.05);
+    if (crazy) { g.gain.setValueAtTime(vol, t + 1.0); g.gain.exponentialRampToValueAtTime(vol * 0.5, t + 1.35); g.gain.exponentialRampToValueAtTime(vol, t + 1.55); }
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    sh.connect(f); f.connect(g); g.connect(out);
+    const lfo = c.createOscillator(), lg = c.createGain();
+    lfo.frequency.value = crazy ? 38 : 20 + p * 18; lg.gain.value = base * (crazy ? 0.3 : 0.12); lfo.connect(lg);
+    [['sawtooth', 1], ['square', 1.01]].forEach(([type, m]) => {
+      const o = c.createOscillator(); o.type = type; const fr = o.frequency;
+      fr.setValueAtTime(base * 0.8 * m, t);
+      fr.linearRampToValueAtTime(base * 1.9 * m, t + dur * 0.2);
+      if (crazy) { fr.linearRampToValueAtTime(base * 0.9 * m, t + 1.2); fr.linearRampToValueAtTime(base * 2.4 * m, t + 1.6); }
+      fr.exponentialRampToValueAtTime(base * 0.5 * m, t + dur);
+      lg.connect(fr); o.connect(sh); o.start(t); o.stop(t + dur + 0.1);
+    });
+    lfo.start(t); lfo.stop(t + dur + 0.1);
+    const n = noise(c, dur), nf = c.createBiquadFilter(), ng = c.createGain();
+    nf.type = 'bandpass'; nf.frequency.value = 500 + p * 700; nf.Q.value = 0.8;
+    env(ng, t, 0.05, dur - 0.05, vol * (crazy ? 0.7 : 0.4));
+    n.connect(nf); nf.connect(ng); ng.connect(out); n.start(t);
+  }
+
   const SOUNDS = {
-    dinosaurs() {                       // T-Rex roar
-      const c = ctx(), t = c.currentTime;
-      const o = c.createOscillator(), g = c.createGain(), f = c.createBiquadFilter(), lfo = c.createOscillator(), lg = c.createGain();
-      o.type = 'sawtooth';
-      o.frequency.setValueAtTime(90, t); o.frequency.linearRampToValueAtTime(200, t + 0.25); o.frequency.exponentialRampToValueAtTime(55, t + 1.5);
-      lfo.frequency.value = 28; lg.gain.value = 18; lfo.connect(lg); lg.connect(o.frequency);
-      f.type = 'lowpass'; f.frequency.setValueAtTime(1000, t); f.frequency.exponentialRampToValueAtTime(250, t + 1.5);
-      env(g, t, 0.05, 1.5, 0.7); o.connect(f); f.connect(g); g.connect(c.destination);
-      o.start(t); lfo.start(t); o.stop(t + 1.7); lfo.stop(t + 1.7);
-      const n = noise(c, 1.6), ng = c.createGain(), nf = c.createBiquadFilter();
-      nf.type = 'bandpass'; nf.frequency.value = 500; env(ng, t, 0.05, 1.4, 0.35);
-      n.connect(nf); nf.connect(ng); ng.connect(c.destination); n.start(t);
-    },
+    dinosaurs() { roar(1, true); },                 // grand finale T-Rex
     aliens() {                          // wobbly UFO warble
       const c = ctx(), t = c.currentTime;
       const o = c.createOscillator(), g = c.createGain(), lfo = c.createOscillator(), lg = c.createGain();
@@ -70,6 +92,9 @@
     default() { chime([523, 659, 784, 1047], 0.13); }
   };
 
+  window.playProgress = (name, stage) => {      // stage 1..4 while coloring: roars grow toward the finale
+    try { ctx(); if (String(name).toLowerCase() === "dinosaurs") roar((stage - 1) / 3); } catch (e) {}
+  };
   window.playFinish = name => {
     try { ctx(); (SOUNDS[{ vehicles: 'cars' }[String(name).toLowerCase()] || String(name).toLowerCase()] || SOUNDS.default)(); } catch (e) {}
   };

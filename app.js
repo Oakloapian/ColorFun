@@ -18,7 +18,7 @@ const CAT_INFO = {                         // emoji + tile color per category (u
   robots: ['🤖', '#bbdefb'], cars: ['🚗', '#ffcdd2'], vehicles: ['🚗', '#ffcdd2'], animals: ['🐶', '#ffe0b2'],
   more: ['⭐', '#fff59d']
 };
-const VERSION = 'v13';
+const VERSION = 'v14';
 const MAX_UNDO = 8;
 const BARRIER_LUM = 140;                  // pixels darker than this stop the bucket fill
 const DONE_AT = 0.9;                      // share of shapes that must be colored to count as finished
@@ -209,7 +209,11 @@ function coverage() {
 function maybeFinish(silent) {
   if (!regionIdx || !regionIdx.length) return;
   const c = coverage();
-  if (!st.done && c >= DONE_AT) {
+  const stage = Math.min(4, Math.floor(c / 0.2));      // 20/40/60/80% -> growing roars (dinosaurs)
+  const finishing = !st.done && c >= DONE_AT;
+  if (silent || stage < st.stage) st.stage = stage;
+  else if (stage > st.stage) { st.stage = stage; if (!finishing && window.playProgress) playProgress(catOf(st.name), stage); }
+  if (finishing) {
     st.done = true;
     if (!silent) { toast('🎉 Great job!'); window.playFinish && playFinish(catOf(st.name)); }
   } else if (st.done && c < DONE_AT - 0.1) st.done = false;
