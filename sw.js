@@ -1,12 +1,12 @@
 /* Offline cache: app shell + every image in Images/manifest.json.
    Strategy: serve from cache instantly, refresh in the background (new images appear on next open). */
-const V = 'colorfun-v12';   // bump when app code changes so phones pick up the update
+const V = 'colorfun-v13';   // bump when app code changes so phones pick up the update
 const SHELL = ['./', 'index.html', 'app.css', 'app.js', 'sounds.js', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil((async () => {
     const c = await caches.open(V);
-    await c.addAll(SHELL);
+    await Promise.all(SHELL.map(u => fetch(u, { cache: 'reload' }).then(r => { if (!r.ok) throw 0; return c.put(u, r); })));
     try {
       const r = await fetch('Images/manifest.json', { cache: 'no-store' });
       const list = await r.clone().json();

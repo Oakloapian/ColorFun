@@ -18,6 +18,7 @@ const CAT_INFO = {                         // emoji + tile color per category (u
   robots: ['🤖', '#bbdefb'], cars: ['🚗', '#ffcdd2'], vehicles: ['🚗', '#ffcdd2'], animals: ['🐶', '#ffe0b2'],
   more: ['⭐', '#fff59d']
 };
+const VERSION = 'v13';
 const MAX_UNDO = 8;
 const BARRIER_LUM = 140;                  // pixels darker than this stop the bucket fill
 const DONE_AT = 0.9;                      // share of shapes that must be colored to count as finished
@@ -498,3 +499,4 @@ addEventListener('popstate', async () => {
   if (v === 'home') st.cat = null;
   showGallery();
 });
+$('#ver').textContent = VERSION + ' (app)';
