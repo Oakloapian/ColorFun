@@ -18,7 +18,8 @@ const CAT_INFO = {                         // emoji + tile color per category (u
   robots: ['🤖', '#bbdefb'], cars: ['🚗', '#ffcdd2'], vehicles: ['🚗', '#ffcdd2'], animals: ['🐶', '#ffe0b2'],
   more: ['⭐', '#fff59d']
 };
-const VERSION = 'v14';
+const VERSION = 'v15';
+const GREETINGS = { 'Dinosaurs/1794444247138.jpg': 'Ellie!' };   // picture -> name shouted when coloring starts
 const MAX_UNDO = 8;
 const BARRIER_LUM = 140;                  // pixels darker than this stop the bucket fill
 const DONE_AT = 0.9;                      // share of shapes that must be colored to count as finished
@@ -148,6 +149,7 @@ async function openArt(name) {
     }
   }
   maybeFinish(true);                                   // already-finished pictures don't replay the sound
+  st.greet = GREETINGS[name] && coverage() < 0.001 ? GREETINGS[name] : null;   // spoken on the first stroke of a fresh picture
   updateBtns();
 }
 
@@ -223,6 +225,7 @@ function maybeFinish(silent) {
 const snap = keys => { const o = {}; for (const k of keys) o[k] = LAYERS[k].getImageData(0, 0, W, H); return o; };
 const apply = o => { for (const k in o) LAYERS[k].putImageData(o[k], 0, 0); };
 function pushUndo(keys) {
+  if (st.greet && keys.includes('c')) { speak(st.greet); st.greet = null; }
   st.undo.push(snap(keys));
   if (st.undo.length > MAX_UNDO) st.undo.shift();
   st.redo = []; updateBtns();
@@ -504,3 +507,11 @@ addEventListener('popstate', async () => {
   showGallery();
 });
 $('#ver').textContent = VERSION + ' (app)';
+
+function speak(text) {                                  // loud, excited voice (uses the device's built-in speech)
+  try {
+    const u = new SpeechSynthesisUtterance(text);
+    u.volume = 1; u.pitch = 1.7; u.rate = 1.1;
+    speechSynthesis.cancel(); speechSynthesis.speak(u);
+  } catch (e) {}
+}
